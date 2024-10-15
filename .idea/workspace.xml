@@ -7,7 +7,6 @@
     <list default="true" id="9aef1cfc-2aa6-48cf-80f6-3170b1f947a5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/pluralsight/AccountingLedgerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pluralsight/AccountingLedgerApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/pluralsight/Transactions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pluralsight/Transactions.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/transactions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/transactions.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -66,7 +65,7 @@
       <option name="presentableId" value="Default" />
       <updated>1728936561756</updated>
       <workItem from="1728936562891" duration="4657000" />
-      <workItem from="1728999307354" duration="17874000" />
+      <workItem from="1728999307354" duration="21404000" />
     </task>
     <servers />
   </component>

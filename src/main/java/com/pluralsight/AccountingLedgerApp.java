@@ -53,13 +53,14 @@ public class AccountingLedgerApp {
         }
     }
 
-    // Read the transactions.csv file and add transactions to the hashmap
+    // Read the transactions.csv file and add transactions to the HashMap
     private  static void loadTransactions(HashMap<String, Transactions> transactions){
 
         try{
+            // Read the transactions.csv file
             BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/transactions.csv"));
 
-            // Skip first line
+            // Skip first line with the header
             bufferedReader.readLine();
 
             // Read the file a line at a time
@@ -73,6 +74,7 @@ public class AccountingLedgerApp {
                 transactions.put(tokens[2], new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
                                                                 tokens[2], tokens[3], Float.parseFloat(tokens[4])));
             }
+            bufferedReader.close();
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -85,6 +87,7 @@ public class AccountingLedgerApp {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/main/resources/transactions.csv", true));
             DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
+//            bufferedWriter.write("date|time|description|vendor|amount\n");
 
             // Write the date and time
             bufferedWriter.write(LocalDate.now() + "|");
@@ -97,7 +100,12 @@ public class AccountingLedgerApp {
             bufferedWriter.write(scanner.nextLine().trim() + "|");
 
             System.out.print("Enter the amount: ");
-            bufferedWriter.write(scanner.nextFloat() + "\n");
+            float amount = scanner.nextFloat();
+            // If it's a debit make the amount negative if not already
+            if(transactionType.equals("debit") && amount > 0){
+                amount = -amount;
+            }
+            bufferedWriter.write(amount + "\n");
             // Catch the new line character
             scanner.nextLine();
 
@@ -149,51 +157,58 @@ public class AccountingLedgerApp {
 
     // Shows all entries (newest entries first)
     private static void ledger(Scanner scanner) {
-
+        // Read the transactions.csv file and add transactions to the HashMap
         loadTransactions(transactions);
 
-        try {
-            // Create bufferedReader to read from file
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/transactions.csv"));
+        while (true) {
+            System.out.print("""
+                   Ledger. Which entries would you like to display?
+                    (A) All
+                    (D) Deposits
+                    (P) Payments
+                    (R) Reports
+                    (H) Home
+                    Please select an option (A,D,P,R, or H): \
+                    """);
+            String option = scanner.nextLine().trim();
 
-            while (true) {
-                System.out.print("""
-                        Ledger. Which entries would you like to display?
-                        (A) All
-                        (D) Deposits
-                        (P) Payments
-                        (R) Reports
-                        (H) Home
-                        Please select an option (A,D,P,R, or H): \
-                        """);
-                String option = scanner.nextLine().trim();
-
-                switch (option.toUpperCase()) {
-                    // Display all entries with header
-                    case "A":
-                        System.out.println("date|time|description|vendor|amount");
-                        for( String transaction: transactions.keySet()){
+            switch (option.toUpperCase()) {
+                // Display all entries with header
+                case "A":
+                    System.out.println("date|time|description|vendor|amount");
+                    for( String transaction: transactions.keySet()){
+                        System.out.println(transactions.get(transaction).toString());
+                    }
+                    System.out.println();
+                    break;
+                // Display all deposits
+                case "D":
+                    System.out.println("date|time|description|vendor|amount");
+                    for( String transaction: transactions.keySet()){
+                        if(transactions.get(transaction).getAmount() > 0) {
                             System.out.println(transactions.get(transaction).toString());
                         }
-                        System.out.println();
-                        break;
-                    // Display all deposits
-                    case "D":
-                        break;
-                    case "P":
-                        break;
-                    case "R":
-                        break;
-                    case "H":
-                        bufferedReader.close();
-                        return;
-                    default:
-                        System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
-                        break;
-                }
+                    }
+                    System.out.println();
+                    break;
+                    // Display all payments
+                case "P":
+                    System.out.println("date|time|description|vendor|amount");
+                    for( String transaction: transactions.keySet()){
+                        if(transactions.get(transaction).getAmount() < 0) {
+                            System.out.println(transactions.get(transaction).toString());
+                        }
+                    }
+                    System.out.println();
+                    break;
+                case "R":
+                    break;
+                case "H":
+                    return;
+                default:
+                    System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
+                    break;
             }
-        }catch (IOException e){
-            e.printStackTrace();
         }
     }
 }
