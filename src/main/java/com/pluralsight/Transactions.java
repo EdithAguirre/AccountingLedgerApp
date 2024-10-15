@@ -60,6 +60,11 @@ public class Transactions {
     }
 
     // Methods
+    @Override
+    public String toString(){
 
+        return this.date + "|" + this.time + "|" + this.description +
+                        "|" + this.vendor + "|" + this.amount;
+    }
 
 }

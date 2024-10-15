@@ -4,9 +4,7 @@ business or for personal use.
  */
 package com.pluralsight;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +12,6 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class AccountingLedgerApp {
-
     // Create a hashmap to hold transactions
     static HashMap<String, Transactions> transactions = new HashMap<>();
     public static void main(String[] args) {
@@ -33,8 +30,7 @@ public class AccountingLedgerApp {
                     (X) Exit
                     Select an option (D,P,L,or X): \
                     """);
-
-            String option = scanner.nextLine();
+            String option = scanner.nextLine().trim();
 
             // Match user's option to a case and perform what the user selected
             switch(option.toUpperCase()) {
@@ -48,11 +44,37 @@ public class AccountingLedgerApp {
                     ledger(scanner);
                     break;
                 case "X":
+                    scanner.close();
                     System.exit(0);
                 default:
                     System.out.println("Invalid input. Please enter a valid option(D,P,L, or X).");
                     break;
             }
+        }
+    }
+
+    // Read the transactions.csv file and add transactions to the hashmap
+    private  static void loadTransactions(HashMap<String, Transactions> transactions){
+
+        try{
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/transactions.csv"));
+
+            // Skip first line
+            bufferedReader.readLine();
+
+            // Read the file a line at a time
+            String input;
+            while((input = bufferedReader.readLine()) != null){
+
+                // Split string at each bar ( | ) character
+                String[] tokens = input.split("\\|");
+
+                // Create a transaction from each line and add it to the hashmap, description is the key
+                transactions.put(tokens[2], new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
+                                                                tokens[2], tokens[3], Float.parseFloat(tokens[4])));
+            }
+        }catch(IOException e){
+            e.printStackTrace();
         }
 
     }
@@ -98,7 +120,7 @@ public class AccountingLedgerApp {
 
             // Ask user if they would like to add another deposit or exit
             System.out.print("Would you like to add another deposit? (Press any key for yes, or X to exit): ");
-            option = scanner.nextLine();
+            option = scanner.nextLine().trim();
 
             // Make a new line to make more space
             System.out.println();
@@ -117,7 +139,7 @@ public class AccountingLedgerApp {
 
             // Ask user if they would like to add another debit or exit
             System.out.print("Would you like to add another debit? (Press any key for yes, or X to exit): ");
-            option = scanner.nextLine();
+            option = scanner.nextLine().trim();
 
             // Make a new line to make more space
             System.out.println();
@@ -128,35 +150,50 @@ public class AccountingLedgerApp {
     // Shows all entries (newest entries first)
     private static void ledger(Scanner scanner) {
 
-        while(true) {
-            System.out.print("""
-                    Ledger. Which entries would you like to display?
-                    (A) All
-                    (D) Deposits
-                    (P) Payments
-                    (R) Reports
-                    (H) Home
-                    Please select an option (A,D,P,R, or H): \
-                    """);
-            String option = scanner.nextLine();
+        loadTransactions(transactions);
 
-            switch (option.toUpperCase()) {
-                case "A":
+        try {
+            // Create bufferedReader to read from file
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/transactions.csv"));
 
-                    break;
-                case "D":
-                    break;
-                case "P":
-                    break;
-                case "R":
-                    break;
-                case "H":
-                    return;
-                default:
-                    System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
-                    break;
+            while (true) {
+                System.out.print("""
+                        Ledger. Which entries would you like to display?
+                        (A) All
+                        (D) Deposits
+                        (P) Payments
+                        (R) Reports
+                        (H) Home
+                        Please select an option (A,D,P,R, or H): \
+                        """);
+                String option = scanner.nextLine().trim();
+
+                switch (option.toUpperCase()) {
+                    // Display all entries with header
+                    case "A":
+                        System.out.println("date|time|description|vendor|amount");
+                        for( String transaction: transactions.keySet()){
+                            System.out.println(transactions.get(transaction).toString());
+                        }
+                        System.out.println();
+                        break;
+                    // Display all deposits
+                    case "D":
+                        break;
+                    case "P":
+                        break;
+                    case "R":
+                        break;
+                    case "H":
+                        bufferedReader.close();
+                        return;
+                    default:
+                        System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
+                        break;
+                }
             }
-
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
 }
