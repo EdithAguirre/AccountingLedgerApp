@@ -8,12 +8,15 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
 public class AccountingLedgerApp {
     // Create a hashmap to hold transactions
-    static HashMap<String, Transactions> transactions = new HashMap<>();
+    static HashMap<String, Transactions> transactionsHashMap = new HashMap<>();
+    // Create an arrayList to hold transactions
+    static ArrayList<Transactions> transactionsArrayList = new ArrayList<>();
     public static void main(String[] args) {
 
         // Create a scanner object to read user input
@@ -53,8 +56,8 @@ public class AccountingLedgerApp {
         }
     }
 
-    // Read the transactions.csv file and add transactions to the HashMap
-    private  static void loadTransactions(HashMap<String, Transactions> transactions){
+    // Read the transactions.csv file and add transactions to the HashMap and ArrayList
+    private  static void loadTransactions(HashMap<String, Transactions> transactionsHashMap, ArrayList<Transactions> transactionsArrayList){
 
         try{
             // Read the transactions.csv file
@@ -71,23 +74,25 @@ public class AccountingLedgerApp {
                 String[] tokens = input.split("\\|");
 
                 // Create a transaction from each line and add it to the hashmap, description is the key
-                transactions.put(tokens[2], new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
+                transactionsHashMap.put(tokens[2], new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
                                                                 tokens[2], tokens[3], Float.parseFloat(tokens[4])));
+
+                // Create a transaction from each line and add it to the arrayList
+                transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
+                                                            tokens[2], tokens[3], Float.parseFloat(tokens[4])));
+
             }
             bufferedReader.close();
         }catch(IOException e){
             e.printStackTrace();
         }
-
     }
 
-    // Write to file
+    // Write to the transactions.csv file the transactions logged by the user (Deposit or debit)
     private static void writeToFile(Scanner scanner, String transactionType){
-
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/main/resources/transactions.csv", true));
             DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
-//            bufferedWriter.write("date|time|description|vendor|amount\n");
 
             // Write the date and time
             bufferedWriter.write(LocalDate.now() + "|");
@@ -101,13 +106,15 @@ public class AccountingLedgerApp {
 
             System.out.print("Enter the amount: ");
             float amount = scanner.nextFloat();
+            // Catch the new line character that was left by the float
+            scanner.nextLine();
+
             // If it's a debit make the amount negative if not already
             if(transactionType.equals("debit") && amount > 0){
                 amount = -amount;
             }
-            bufferedWriter.write(amount + "\n");
-            // Catch the new line character
-            scanner.nextLine();
+            // write a formatted float so that displays with 2 decimal places
+            bufferedWriter.write(String.format("%.2f\n", amount));
 
             // Close the buffered writer
             bufferedWriter.close();
@@ -119,12 +126,10 @@ public class AccountingLedgerApp {
 
     // Prompt user for the deposit information and save it to the csv file
     private static void addDeposit(Scanner scanner) {
-        String transactionType = "deposit";
-
         String option;
         do{
             // Write the deposit information given by the user to the file
-            writeToFile(scanner,transactionType);
+            writeToFile(scanner,"deposit");
 
             // Ask user if they would like to add another deposit or exit
             System.out.print("Would you like to add another deposit? (Press any key for yes, or X to exit): ");
@@ -138,12 +143,10 @@ public class AccountingLedgerApp {
 
     // Prompt user for the debit information and save it to the csv file
     private static void makePayment(Scanner scanner) {
-        String transactionType = "debit";
-
         String option;
         do{
             // Write the debit information given by the user to the file
-            writeToFile(scanner,transactionType);
+            writeToFile(scanner,"debit");
 
             // Ask user if they would like to add another debit or exit
             System.out.print("Would you like to add another debit? (Press any key for yes, or X to exit): ");
@@ -157,8 +160,8 @@ public class AccountingLedgerApp {
 
     // Shows all entries (newest entries first)
     private static void ledger(Scanner scanner) {
-        // Read the transactions.csv file and add transactions to the HashMap
-        loadTransactions(transactions);
+        // Read the transactions.csv file and add transactions to the HashMap & arrayList, to read from it
+        loadTransactions(transactionsHashMap, transactionsArrayList);
 
         while (true) {
             System.out.print("""
@@ -173,41 +176,81 @@ public class AccountingLedgerApp {
             String option = scanner.nextLine().trim();
 
             switch (option.toUpperCase()) {
-                // Display all entries with header
-                case "A":
+                case "A":   // Display all entries with header using an arrayList (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for( String transaction: transactions.keySet()){
-                        System.out.println(transactions.get(transaction).toString());
+                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--) {
+                        System.out.println(transactionsArrayList.get(i).toString());
                     }
                     System.out.println();
                     break;
-                // Display all deposits
-                case "D":
+                case "D":   // Display all deposits (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for( String transaction: transactions.keySet()){
-                        if(transactions.get(transaction).getAmount() > 0) {
-                            System.out.println(transactions.get(transaction).toString());
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getAmount() > 0) {
+                            System.out.println(transactionsArrayList.get(i).toString());
                         }
                     }
                     System.out.println();
                     break;
-                    // Display all payments
-                case "P":
+                case "P":    // Display all payments (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for( String transaction: transactions.keySet()){
-                        if(transactions.get(transaction).getAmount() < 0) {
-                            System.out.println(transactions.get(transaction).toString());
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getAmount() < 0) {
+                            System.out.println(transactionsArrayList.get(i).toString());
                         }
                     }
                     System.out.println();
                     break;
                 case "R":
+                    ledgerReports(scanner);
                     break;
                 case "H":
                     return;
                 default:
                     System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
                     break;
+            }
+        }
+    }
+    // A new screen that allows user to run pre-defined reports or run a custom search
+    private static void ledgerReports(Scanner scanner) {
+        while(true) {
+            System.out.print("""
+                    Ledger Reports. Please select a display option to continue.
+                    (1) Month To Date
+                    (2) Previous Month
+                    (3) Year To Date
+                    (4) Previous Year
+                    (5) Search by Vendor
+                    (0) Back
+                    Enter an option (1,2,3,4,5, or 0): \
+                    """);
+            int option = scanner.nextInt();
+            scanner.nextLine(); // Catches next line character
+
+            switch (option) {
+                case 1:     // Month To Date
+
+                    break;
+                case 2:     // Previous Month
+                    break;
+                case 3:     // Year To Date
+                    break;
+                case 4:     // Previous Year
+                    break;
+                case 5:     // Search by Vendor (display newest entries first)
+                    System.out.print("To search by vendor, please enter the vendor name: ");
+                    String vendorName = scanner.nextLine();
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if((transactionsArrayList.get(i).getVendor().equals(vendorName))){
+                            System.out.println(transactionsArrayList.get(i));
+                        }
+                    }
+                    break;
+                case 0:     // Back
+                    return;
+                default:
+                    System.out.println("Invalid input. Please enter a valid option (1,2,3,4,5, or 0).");
             }
         }
     }
