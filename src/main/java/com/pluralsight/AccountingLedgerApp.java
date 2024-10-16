@@ -181,7 +181,6 @@ public class AccountingLedgerApp {
                     for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--) {
                         System.out.println(transactionsArrayList.get(i).toString());
                     }
-                    System.out.println();
                     break;
                 case "D":   // Display all deposits (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
@@ -190,26 +189,25 @@ public class AccountingLedgerApp {
                             System.out.println(transactionsArrayList.get(i).toString());
                         }
                     }
-                    System.out.println();
                     break;
-                case "P":    // Display all payments (newest entries first)
+                case "P":    // Display only negative entries or payments (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getAmount() < 0) {
                             System.out.println(transactionsArrayList.get(i).toString());
                         }
                     }
-                    System.out.println();
                     break;
-                case "R":
+                case "R":   // Run pre-defined reports or run a custom search
                     ledgerReports(scanner);
                     break;
-                case "H":
+                case "H":   // Go back to the home page
                     return;
-                default:
+                default:    // Let user know they entered a non-option and should try again
                     System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
                     break;
             }
+            System.out.println();
         }
     }
     // A new screen that allows user to run pre-defined reports or run a custom search
@@ -228,15 +226,45 @@ public class AccountingLedgerApp {
             int option = scanner.nextInt();
             scanner.nextLine(); // Catches next line character
 
+            // Current date to compare with entry dates
+            LocalDate currentDate = LocalDate.now();
+
             switch (option) {
                 case 1:     // Month To Date
-
+                    System.out.println("Ledger Entries in Month To Date: ");
+                    System.out.println("date|time|description|vendor|amount");
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth() &&
+                            transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
+                            System.out.println(transactionsArrayList.get(i).toString());
+                        }
+                    }
                     break;
                 case 2:     // Previous Month
+                    System.out.println("Ledger Entries of the Previous Month: ");
+                    System.out.println("date|time|description|vendor|amount");
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth().minus(1) &&
+                                transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
+                            System.out.println(transactionsArrayList.get(i).toString());
+                        }
+                    }
                     break;
                 case 3:     // Year To Date
+                    System.out.println("Ledger Entries of the Year To Date: ");
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
+                            System.out.println(transactionsArrayList.get(i).toString());
+                        }
+                    }
                     break;
                 case 4:     // Previous Year
+                    System.out.println("Ledger Entries of the Previous Year: ");
+                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        if(transactionsArrayList.get(i).getDate().getYear() == currentDate.minusYears(1).getYear()) {
+                            System.out.println(transactionsArrayList.get(i).toString());
+                        }
+                    }
                     break;
                 case 5:     // Search by Vendor (display newest entries first)
                     System.out.print("To search by vendor, please enter the vendor name: ");
@@ -252,6 +280,7 @@ public class AccountingLedgerApp {
                 default:
                     System.out.println("Invalid input. Please enter a valid option (1,2,3,4,5, or 0).");
             }
+            System.out.println();
         }
     }
 }
