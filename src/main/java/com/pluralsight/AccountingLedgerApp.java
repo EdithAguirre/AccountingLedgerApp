@@ -17,10 +17,9 @@ public class AccountingLedgerApp {
     static HashMap<String, Transactions> transactionsHashMap = new HashMap<>();
     // Create an arrayList to hold transactions
     static ArrayList<Transactions> transactionsArrayList = new ArrayList<>();
+    // Create a scanner object to read user input
+    static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args) {
-
-        // Create a scanner object to read user input
-        Scanner scanner = new Scanner(System.in);
 
         // Continue to run until the user chooses to exit
         while(true){
@@ -38,17 +37,17 @@ public class AccountingLedgerApp {
             // Match user's option to a case and perform what the user selected
             switch(option.toUpperCase()) {
                 case "D":
-                    addDeposit(scanner);
+                    addDeposit();
                     break;
                 case "P":
-                    makePayment(scanner);
+                    makePayment();
                     break;
                 case "L":
-                    ledger(scanner);
+                    ledger();
                     break;
                 case "X":
                     scanner.close();
-                    System.exit(0);
+                    System.exit(0); // Terminates the application
                 default:
                     System.out.println("Invalid input. Please enter a valid option(D,P,L, or X).");
                     break;
@@ -57,7 +56,7 @@ public class AccountingLedgerApp {
     }
 
     // Read the transactions.csv file and add transactions to the HashMap and ArrayList
-    private  static void loadTransactions(HashMap<String, Transactions> transactionsHashMap, ArrayList<Transactions> transactionsArrayList){
+    private  static void loadTransactions(){
 
         try{
             // Read the transactions.csv file
@@ -80,7 +79,6 @@ public class AccountingLedgerApp {
                 // Create a transaction from each line and add it to the arrayList
                 transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
                                                             tokens[2], tokens[3], Float.parseFloat(tokens[4])));
-
             }
             bufferedReader.close();
         }catch(IOException e){
@@ -89,12 +87,12 @@ public class AccountingLedgerApp {
     }
 
     // Write to the transactions.csv file the transactions logged by the user (Deposit or debit)
-    private static void writeToFile(Scanner scanner, String transactionType){
+    private static void writeToFile(String transactionType){
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/main/resources/transactions.csv", true));
             DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-            // Write the date and time
+            // Write to file the current date & time, and prompt user for the deposit/debit description, vendor, and amount
             bufferedWriter.write(LocalDate.now() + "|");
             bufferedWriter.write(LocalTime.now().format(format) + "|");
 
@@ -106,8 +104,7 @@ public class AccountingLedgerApp {
 
             System.out.print("Enter the amount: ");
             float amount = scanner.nextFloat();
-            // Catch the new line character that was left by the float
-            scanner.nextLine();
+            scanner.nextLine();     // Catch the new line character that was left by the float
 
             // If it's a debit make the amount negative if not already
             if(transactionType.equals("debit") && amount > 0){
@@ -125,44 +122,43 @@ public class AccountingLedgerApp {
     }
 
     // Prompt user for the deposit information and save it to the csv file
-    private static void addDeposit(Scanner scanner) {
+    private static void addDeposit() {
         String option;
         do{
             // Write the deposit information given by the user to the file
-            writeToFile(scanner,"deposit");
+            writeToFile("deposit");
 
             // Ask user if they would like to add another deposit or exit
             System.out.print("Would you like to add another deposit? (Press any key for yes, or X to exit): ");
             option = scanner.nextLine().trim();
 
-            // Make a new line to make more space
-            System.out.println();
+            System.out.println();   // Make a new line to make more space
 
         }while(!option.equalsIgnoreCase("X"));
     }
 
     // Prompt user for the debit information and save it to the csv file
-    private static void makePayment(Scanner scanner) {
+    private static void makePayment() {
         String option;
         do{
             // Write the debit information given by the user to the file
-            writeToFile(scanner,"debit");
+            writeToFile("debit");
 
             // Ask user if they would like to add another debit or exit
             System.out.print("Would you like to add another debit? (Press any key for yes, or X to exit): ");
             option = scanner.nextLine().trim();
 
-            // Make a new line to make more space
-            System.out.println();
+            System.out.println();   // Make a new line to make more space
 
         }while(!option.equalsIgnoreCase("X"));
     }
 
     // Shows all entries (newest entries first)
-    private static void ledger(Scanner scanner) {
+    private static void ledger() {
         // Read the transactions.csv file and add transactions to the HashMap & arrayList, to read from it
-        loadTransactions(transactionsHashMap, transactionsArrayList);
+        loadTransactions();
 
+        // Display ledger options and prompt the user to select one
         while (true) {
             System.out.print("""
                    Ledger. Which entries would you like to display?
@@ -178,15 +174,15 @@ public class AccountingLedgerApp {
             switch (option.toUpperCase()) {
                 case "A":   // Display all entries with header using an arrayList (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--) {
-                        System.out.println(transactionsArrayList.get(i).toString());
+                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+                        System.out.println(transactionsArrayList.get(i));
                     }
                     break;
                 case "D":   // Display all deposits (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getAmount() > 0) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
@@ -194,12 +190,12 @@ public class AccountingLedgerApp {
                     System.out.println("date|time|description|vendor|amount");
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getAmount() < 0) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
                 case "R":   // Run pre-defined reports or run a custom search
-                    ledgerReports(scanner);
+                    ledgerReports();
                     break;
                 case "H":   // Go back to the home page
                     return;
@@ -207,11 +203,11 @@ public class AccountingLedgerApp {
                     System.out.println("Invalid input. Please select one of the options(A,D,P,R, or H)");
                     break;
             }
-            System.out.println();
+            System.out.println();   // New line for space
         }
     }
     // A new screen that allows user to run pre-defined reports or run a custom search
-    private static void ledgerReports(Scanner scanner) {
+    private static void ledgerReports() {
         while(true) {
             System.out.print("""
                     Ledger Reports. Please select a display option to continue.
@@ -220,6 +216,7 @@ public class AccountingLedgerApp {
                     (3) Year To Date
                     (4) Previous Year
                     (5) Search by Vendor
+                    (6) Custom Search
                     (0) Back
                     Enter an option (1,2,3,4,5, or 0): \
                     """);
@@ -236,7 +233,7 @@ public class AccountingLedgerApp {
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth() &&
                             transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
@@ -246,7 +243,7 @@ public class AccountingLedgerApp {
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth().minus(1) &&
                                 transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
@@ -254,7 +251,7 @@ public class AccountingLedgerApp {
                     System.out.println("Ledger Entries of the Year To Date: ");
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
@@ -262,7 +259,7 @@ public class AccountingLedgerApp {
                     System.out.println("Ledger Entries of the Previous Year: ");
                     for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
                         if(transactionsArrayList.get(i).getDate().getYear() == currentDate.minusYears(1).getYear()) {
-                            System.out.println(transactionsArrayList.get(i).toString());
+                            System.out.println(transactionsArrayList.get(i));
                         }
                     }
                     break;
@@ -275,6 +272,9 @@ public class AccountingLedgerApp {
                         }
                     }
                     break;
+                case 6:     // Custom Search
+                    ledgerCustomSearch();
+                    break;
                 case 0:     // Back
                     return;
                 default:
@@ -282,5 +282,53 @@ public class AccountingLedgerApp {
             }
             System.out.println();
         }
+    }
+
+    private static void ledgerCustomSearch() {
+       String option;
+        do {
+
+           // Prompt the user for search values
+           System.out.println("To custom search the ledger, please enter the following information. ");
+           System.out.print("Enter Start Date in the format yyyy-MM-dd (to leave empty enter null): ");
+           String startDateString = scanner.nextLine().trim();
+           LocalDate startDate = null;
+           if (!startDateString.equalsIgnoreCase("null")) {
+               startDate = LocalDate.parse(startDateString);
+           }
+
+           System.out.print("Enter End Date in the format yyyy-MM-dd (to leave empty enter null): ");
+           String endDateString = scanner.nextLine().trim();
+           LocalDate endDate = null;
+           if (!endDateString.equalsIgnoreCase("null")) {
+               endDate = LocalDate.parse(endDateString);
+           }
+
+           System.out.print("Enter the Description(To leave empty, press enter): ");
+           String description = scanner.nextLine();
+
+           System.out.print("Enter the Vendor(To leave empty, press enter): ");
+           String vendor = scanner.nextLine();
+
+           System.out.print("Enter the Amount(To leave empty, press 0): ");
+           float amount = scanner.nextFloat();
+           scanner.nextLine();     // Catch the new line character after float
+
+           System.out.println("date|time|description|vendor|amount");  // Print header
+
+           // Filter entry results using the values the user entered
+           for (int i = transactionsArrayList.size() - 1; i >= 0; i--) {
+
+//               if (transactionsArrayList.get(i).getDate().equals(startDate) && transactionsArrayList.get(i).getDate().equals(endDate) ||
+//                       transactionsArrayList.get(i).getDescription().equalsIgnoreCase(description) || transactionsArrayList.get(i).getVendor().equalsIgnoreCase(vendor) ||
+//                       transactionsArrayList.get(i).getAmount() == amount) {
+//
+//                   // Print out the filtered results
+//                   System.out.println(transactionsArrayList.get(i));
+//               }
+           }
+           System.out.print("Would you like to make another custom search?(If yes press any key, if no press X): ");
+           option = scanner.nextLine().trim();
+       }while(option.equalsIgnoreCase("X"));
     }
 }
