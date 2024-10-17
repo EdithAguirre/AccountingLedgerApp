@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -61,6 +62,8 @@ public class AccountingLedgerApp {
         try{
             // Read the transactions.csv file
             BufferedReader bufferedReader = new BufferedReader(new FileReader("src/main/resources/transactions.csv"));
+            DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatTime = DateTimeFormatter.ofPattern("HH:mm:ss");
 
             // Skip first line with the header
             bufferedReader.readLine();
@@ -73,11 +76,11 @@ public class AccountingLedgerApp {
                 String[] tokens = input.split("\\|");
 
                 // Create a transaction from each line and add it to the hashmap, description is the key
-                transactionsHashMap.put(tokens[2], new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
+                transactionsHashMap.put(tokens[2], new Transactions(LocalDate.parse(tokens[0],formatDate), LocalTime.parse(tokens[1],formatTime),
                                                                 tokens[2], tokens[3], Float.parseFloat(tokens[4])));
 
                 // Create a transaction from each line and add it to the arrayList
-                transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0]), LocalTime.parse(tokens[1]),
+                transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0],formatDate), LocalTime.parse(tokens[1],formatTime),
                                                             tokens[2], tokens[3], Float.parseFloat(tokens[4])));
             }
             bufferedReader.close();
@@ -90,11 +93,13 @@ public class AccountingLedgerApp {
     private static void writeToFile(String transactionType){
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/main/resources/transactions.csv", true));
-            DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-            // Write to file the current date & time, and prompt user for the deposit/debit description, vendor, and amount
-            bufferedWriter.write(LocalDate.now() + "|");
-            bufferedWriter.write(LocalTime.now().format(format) + "|");
+            // Prompt the user for the date, time, deposit/debit description, vendor, and amount
+            System.out.print("Enter the date in the format yyyy-MM-dd: ");
+            bufferedWriter.write(scanner.nextLine().trim() + "|");
+
+            System.out.print("Enter the time (in the format HH:mm:ss): ");
+            bufferedWriter.write(scanner.nextLine().trim() + "|");
 
             System.out.print("Enter the " + transactionType + " description:");
             bufferedWriter.write(scanner.nextLine().trim() + "|");
@@ -174,9 +179,13 @@ public class AccountingLedgerApp {
             switch (option.toUpperCase()) {
                 case "A":   // Display all entries with header using an arrayList (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        System.out.println(transactionsArrayList.get(i));
+//                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
+//                        System.out.println(transactionsArrayList.get(i));
+//                    }
+                    for(Transactions transactions: transactionsArrayList){
+
                     }
+
                     break;
                 case "D":   // Display all deposits (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
@@ -292,17 +301,17 @@ public class AccountingLedgerApp {
            System.out.println("To custom search the ledger, please enter the following information. ");
            System.out.print("Enter Start Date in the format yyyy-MM-dd (to leave empty enter null): ");
            String startDateString = scanner.nextLine().trim();
-           LocalDate startDate = null;
-           if (!startDateString.equalsIgnoreCase("null")) {
-               startDate = LocalDate.parse(startDateString);
-           }
+//           LocalDate startDate = null;
+//           if (!startDateString.equalsIgnoreCase("null")) {
+//               startDate = LocalDate.parse(startDateString);
+//           }
 
            System.out.print("Enter End Date in the format yyyy-MM-dd (to leave empty enter null): ");
            String endDateString = scanner.nextLine().trim();
-           LocalDate endDate = null;
-           if (!endDateString.equalsIgnoreCase("null")) {
-               endDate = LocalDate.parse(endDateString);
-           }
+//           LocalDate endDate = null;
+//           if (!endDateString.equalsIgnoreCase("null")) {
+//               endDate = LocalDate.parse(endDateString);
+//           }
 
            System.out.print("Enter the Description(To leave empty, press enter): ");
            String description = scanner.nextLine();
