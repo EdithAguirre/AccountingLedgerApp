@@ -1,1 +1,0 @@
-Accounting Ledger Application is a program that can track all financial transactions for a business or for personal use.

@@ -2,6 +2,7 @@ package com.pluralsight;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class Transactions {
     // Data fields
@@ -62,9 +63,9 @@ public class Transactions {
     // Methods
     @Override
     public String toString(){
-
-        return this.date + "|" + this.time + "|" + this.description +
-                        "|" + this.vendor + "|" + this.amount;
+        // state explicitly to display seconds field, and 2 decimal places for amount, even if they are 00
+        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return this.date + "|" + this.time.format(timeFormat) + "|" + this.description +
+                        "|" + this.vendor + "|" + String.format("%.2f",this.amount);
     }
-
 }

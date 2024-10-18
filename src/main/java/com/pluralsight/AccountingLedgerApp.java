@@ -1,6 +1,5 @@
 /*
-An application that a user can use to track all financial transactions for a
-business or for personal use.
+An application that a user can use to track all financial transactions for a business or for personal use.
  */
 package com.pluralsight;
 
@@ -8,14 +7,9 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 
 public class AccountingLedgerApp {
-    // Create a hashmap to hold transactions
-    static HashMap<String, Transactions> transactionsHashMap = new HashMap<>();
     // Create an arrayList to hold transactions
     static ArrayList<Transactions> transactionsArrayList = new ArrayList<>();
     // Create a scanner object to read user input
@@ -26,7 +20,7 @@ public class AccountingLedgerApp {
         while(true){
             // Home screen: Give the user options on what to do in the app
             System.out.print("""
-                    Welcome to your Accounting Ledger! Please select an option to continue.
+                    Welcome to your Accounting Ledger's Home page! Please select an option to continue.
                     (D) Add Deposit
                     (P) Make Payment (Debit)
                     (L) Ledger
@@ -56,7 +50,7 @@ public class AccountingLedgerApp {
         }
     }
 
-    // Read the transactions.csv file and add transactions to the HashMap and ArrayList
+    // Read the transactions.csv file and add transactions to the ArrayList
     private  static void loadTransactions(){
 
         try{
@@ -75,17 +69,13 @@ public class AccountingLedgerApp {
                 // Split string at each bar ( | ) character
                 String[] tokens = input.split("\\|");
 
-                // Create a transaction from each line and add it to the hashmap, description is the key
-                transactionsHashMap.put(tokens[2], new Transactions(LocalDate.parse(tokens[0],formatDate), LocalTime.parse(tokens[1],formatTime),
-                                                                tokens[2], tokens[3], Float.parseFloat(tokens[4])));
-
                 // Create a transaction from each line and add it to the arrayList
-                transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0],formatDate), LocalTime.parse(tokens[1],formatTime),
-                                                            tokens[2], tokens[3], Float.parseFloat(tokens[4])));
+                transactionsArrayList.add(new Transactions(LocalDate.parse(tokens[0],formatDate),
+                        LocalTime.parse(tokens[1],formatTime), tokens[2], tokens[3], Float.parseFloat(tokens[4])));
             }
             bufferedReader.close();
         }catch(IOException e){
-            e.printStackTrace();
+            System.out.println("Error. An issue has occurred when reading the file.");
         }
     }
 
@@ -122,7 +112,7 @@ public class AccountingLedgerApp {
             bufferedWriter.close();
 
         }catch(IOException e){
-            e.printStackTrace();
+            System.out.println("Error. An issue has occurred when writing to the file.");
         }
     }
 
@@ -130,9 +120,12 @@ public class AccountingLedgerApp {
     private static void addDeposit() {
         String option;
         do{
+            System.out.println("\nTo add a deposit, enter the following information.");
+
             // Write the deposit information given by the user to the file
             writeToFile("deposit");
 
+            System.out.println("Your deposit has been added successfully!");
             // Ask user if they would like to add another deposit or exit
             System.out.print("Would you like to add another deposit? (Press any key for yes, or X to exit): ");
             option = scanner.nextLine().trim();
@@ -146,9 +139,11 @@ public class AccountingLedgerApp {
     private static void makePayment() {
         String option;
         do{
+            System.out.println("To add a payment/debit, enter the following information.");
             // Write the debit information given by the user to the file
             writeToFile("debit");
 
+            System.out.println("Your debit/payment has been added successfully!");
             // Ask user if they would like to add another debit or exit
             System.out.print("Would you like to add another debit? (Press any key for yes, or X to exit): ");
             option = scanner.nextLine().trim();
@@ -160,13 +155,21 @@ public class AccountingLedgerApp {
 
     // Shows all entries (newest entries first)
     private static void ledger() {
-        // Read the transactions.csv file and add transactions to the HashMap & arrayList, to read from it
+        // Read the transactions.csv file and add transactions to the arrayList, to read from it
         loadTransactions();
+
+        // sort the transactions by the date
+        Collections.sort(transactionsArrayList, new Comparator<>() {
+            @Override
+            public int compare(Transactions o1, Transactions o2) {
+                return o2.getDate().compareTo(o1.getDate());
+            }
+        });
 
         // Display ledger options and prompt the user to select one
         while (true) {
             System.out.print("""
-                   Ledger. Which entries would you like to display?
+                   This is the Ledger page. Which entries would you like to display?
                     (A) All
                     (D) Deposits
                     (P) Payments
@@ -179,27 +182,23 @@ public class AccountingLedgerApp {
             switch (option.toUpperCase()) {
                 case "A":   // Display all entries with header using an arrayList (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-//                    for (int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-//                        System.out.println(transactionsArrayList.get(i));
-//                    }
-                    for(Transactions transactions: transactionsArrayList){
-
+                    for(Transactions transaction: transactionsArrayList){
+                        System.out.println(transaction);
                     }
-
                     break;
                 case "D":   // Display all deposits (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getAmount() > 0) {
-                            System.out.println(transactionsArrayList.get(i));
+                    for(Transactions transaction : transactionsArrayList){
+                        if(transaction.getAmount() > 0){
+                            System.out.println(transaction);
                         }
                     }
                     break;
                 case "P":    // Display only negative entries or payments (newest entries first)
                     System.out.println("date|time|description|vendor|amount");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getAmount() < 0) {
-                            System.out.println(transactionsArrayList.get(i));
+                    for(Transactions transaction : transactionsArrayList){
+                        if(transaction.getAmount() < 0){
+                            System.out.println(transaction);
                         }
                     }
                     break;
@@ -218,126 +217,79 @@ public class AccountingLedgerApp {
     // A new screen that allows user to run pre-defined reports or run a custom search
     private static void ledgerReports() {
         while(true) {
-            System.out.print("""
-                    Ledger Reports. Please select a display option to continue.
-                    (1) Month To Date
-                    (2) Previous Month
-                    (3) Year To Date
-                    (4) Previous Year
-                    (5) Search by Vendor
-                    (6) Custom Search
-                    (0) Back
-                    Enter an option (1,2,3,4,5, or 0): \
-                    """);
-            int option = scanner.nextInt();
-            scanner.nextLine(); // Catches next line character
+            try {
+                System.out.print("""
+                        This is the Ledger Reports screen. Please select a display option to continue.
+                        (1) Month To Date
+                        (2) Previous Month
+                        (3) Year To Date
+                        (4) Previous Year
+                        (5) Search by Vendor
+                        (0) Back
+                        Enter an option (1,2,3,4,5, or 0): \
+                        """);
+                int option = scanner.nextInt();
+                scanner.nextLine(); // Catches next line character
 
-            // Current date to compare with entry dates
-            LocalDate currentDate = LocalDate.now();
+                // Current date to compare with entry dates
+                LocalDate currentDate = LocalDate.now();
 
-            switch (option) {
-                case 1:     // Month To Date
-                    System.out.println("Ledger Entries in Month To Date: ");
-                    System.out.println("date|time|description|vendor|amount");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth() &&
-                            transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i));
+                switch (option) {
+                    case 1:     // Month To Date
+                        System.out.println("Ledger Entries in Month To Date: ");
+                        System.out.println("date|time|description|vendor|amount");
+                        for (Transactions transaction : transactionsArrayList) {
+                            if (transaction.getDate().getMonth() == currentDate.getMonth() &&
+                                    transaction.getDate().getYear() == currentDate.getYear()) {
+                                System.out.println(transaction);
+                            }
                         }
-                    }
-                    break;
-                case 2:     // Previous Month
-                    System.out.println("Ledger Entries of the Previous Month: ");
-                    System.out.println("date|time|description|vendor|amount");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getDate().getMonth() == currentDate.getMonth().minus(1) &&
-                                transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i));
+                        break;
+                    case 2:     // Previous Month
+                        System.out.println("Ledger Entries of the Previous Month: ");
+                        System.out.println("date|time|description|vendor|amount");
+                        for (Transactions transaction : transactionsArrayList) {
+                            if (transaction.getDate().getMonth() == currentDate.getMonth().minus(1) &&
+                                    transaction.getDate().getYear() == currentDate.getYear()) {
+                                System.out.println(transaction);
+                            }
                         }
-                    }
-                    break;
-                case 3:     // Year To Date
-                    System.out.println("Ledger Entries of the Year To Date: ");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getDate().getYear() == currentDate.getYear()) {
-                            System.out.println(transactionsArrayList.get(i));
+                        break;
+                    case 3:     // Year To Date
+                        System.out.println("Ledger Entries of the Year To Date: ");
+                        for (Transactions transaction : transactionsArrayList) {
+                            if (transaction.getDate().getYear() == currentDate.getYear()) {
+                                System.out.println(transaction);
+                            }
                         }
-                    }
-                    break;
-                case 4:     // Previous Year
-                    System.out.println("Ledger Entries of the Previous Year: ");
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if(transactionsArrayList.get(i).getDate().getYear() == currentDate.minusYears(1).getYear()) {
-                            System.out.println(transactionsArrayList.get(i));
+                        break;
+                    case 4:     // Previous Year
+                        System.out.println("Ledger Entries of the Previous Year: ");
+                        for (Transactions transaction : transactionsArrayList) {
+                            if (transaction.getDate().getYear() == currentDate.minusYears(1).getYear()) {
+                                System.out.println(transaction);
+                            }
                         }
-                    }
-                    break;
-                case 5:     // Search by Vendor (display newest entries first)
-                    System.out.print("To search by vendor, please enter the vendor name: ");
-                    String vendorName = scanner.nextLine();
-                    for(int i = transactionsArrayList.size() - 1; i >= 0 ; i--){
-                        if((transactionsArrayList.get(i).getVendor().equals(vendorName))){
-                            System.out.println(transactionsArrayList.get(i));
+                        break;
+                    case 5:     // Search by Vendor (display newest entries first)
+                        System.out.print("To search by vendor, please enter the vendor name: ");
+                        String vendorName = scanner.nextLine().trim();
+                        for (Transactions transaction : transactionsArrayList) {
+                            if ((transaction.getVendor().equalsIgnoreCase(vendorName))) {
+                                System.out.println(transaction);
+                            }
                         }
-                    }
-                    break;
-                case 6:     // Custom Search
-                    ledgerCustomSearch();
-                    break;
-                case 0:     // Back
-                    return;
-                default:
-                    System.out.println("Invalid input. Please enter a valid option (1,2,3,4,5, or 0).");
+                        break;
+                    case 0:     // Back
+                        return;
+                    default:
+                        System.out.println("Invalid input. Please enter a valid option (1,2,3,4,5, or 0).");
+                }
+                System.out.println();
+            }catch (InputMismatchException e){
+                scanner.nextLine();
+                System.out.println("Error. Enter a numeric value from the options given. (1,2,3,4,5, or 0).\n");
             }
-            System.out.println();
         }
-    }
-
-    private static void ledgerCustomSearch() {
-       String option;
-        do {
-
-           // Prompt the user for search values
-           System.out.println("To custom search the ledger, please enter the following information. ");
-           System.out.print("Enter Start Date in the format yyyy-MM-dd (to leave empty enter null): ");
-           String startDateString = scanner.nextLine().trim();
-//           LocalDate startDate = null;
-//           if (!startDateString.equalsIgnoreCase("null")) {
-//               startDate = LocalDate.parse(startDateString);
-//           }
-
-           System.out.print("Enter End Date in the format yyyy-MM-dd (to leave empty enter null): ");
-           String endDateString = scanner.nextLine().trim();
-//           LocalDate endDate = null;
-//           if (!endDateString.equalsIgnoreCase("null")) {
-//               endDate = LocalDate.parse(endDateString);
-//           }
-
-           System.out.print("Enter the Description(To leave empty, press enter): ");
-           String description = scanner.nextLine();
-
-           System.out.print("Enter the Vendor(To leave empty, press enter): ");
-           String vendor = scanner.nextLine();
-
-           System.out.print("Enter the Amount(To leave empty, press 0): ");
-           float amount = scanner.nextFloat();
-           scanner.nextLine();     // Catch the new line character after float
-
-           System.out.println("date|time|description|vendor|amount");  // Print header
-
-           // Filter entry results using the values the user entered
-           for (int i = transactionsArrayList.size() - 1; i >= 0; i--) {
-
-//               if (transactionsArrayList.get(i).getDate().equals(startDate) && transactionsArrayList.get(i).getDate().equals(endDate) ||
-//                       transactionsArrayList.get(i).getDescription().equalsIgnoreCase(description) || transactionsArrayList.get(i).getVendor().equalsIgnoreCase(vendor) ||
-//                       transactionsArrayList.get(i).getAmount() == amount) {
-//
-//                   // Print out the filtered results
-//                   System.out.println(transactionsArrayList.get(i));
-//               }
-           }
-           System.out.print("Would you like to make another custom search?(If yes press any key, if no press X): ");
-           option = scanner.nextLine().trim();
-       }while(option.equalsIgnoreCase("X"));
     }
 }
