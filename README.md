@@ -6,10 +6,10 @@ It tracks deposits, payments/debits, and displays all or a filtered amount of tr
 date, or vendor.
 
 ## _Home page:_
-![Image](C:\Users\edith\OneDrive\Desktop\Pluralsight\java-development\LearnToCode_Capstones\Ledger_Home_Screen.jpg "icon")
+![Ledger_Home_Screen](https://github.com/user-attachments/assets/094c8d11-2663-42fa-b484-44e311268e86)
 
 ## _Ledger Display page:_
-![Image](C:\Users\edith\OneDrive\Desktop\Pluralsight\java-development\LearnToCode_Capstones\Ledger_LedgerDisplay_Screen.jpg "icon")
+![Ledger_LedgerDisplay_Screen](https://github.com/user-attachments/assets/b9a09ac5-37ee-4e29-ba24-48735dfd1bce)
 
 ## **_Override toString() method:_**
 
@@ -18,4 +18,5 @@ method drops the seconds if they are 00, I had to explicitly state in an overrid
 display the seconds 00 using the format HH:mm:ss. Similarly, the float variable amount's toString() needed to be
 formatted to output 2 decimal places.
 
-![Image](C:\Users\edith\OneDrive\Desktop\Pluralsight\java-development\LearnToCode_Capstones\Interesting_Code.jpg "icon")
+![Interesting_Code](https://github.com/user-attachments/assets/a2ccb5cd-d3cf-4327-9cab-048b95a5106c)
+
